@@ -1,0 +1,32 @@
+-- Map scales in yards for common Classic zones (normalized 0-1 map)
+PartyArrow_MAP_SCALES = {
+    [1414] = 6912.5, -- Kalimdor
+    [1415] = 6930.0, -- Eastern Kingdoms
+    [1426] = 4270.0, -- Dun Morogh
+    [1427] = 4920.0, -- Badlands
+    [1428] = 4920.0, -- Searing Gorge
+    [1429] = 4920.0, -- Elwynn Forest
+    [1430] = 4920.0, -- Burning Steppes
+    [1431] = 3470.0, -- Duskwood
+    [1432] = 3470.0, -- Loch Modan
+    [1433] = 3470.0, -- Redridge Mountains
+    [1434] = 3470.0, -- Stranglethorn Vale
+    [1435] = 3470.0, -- Swamp of Sorrows
+    [1436] = 3470.0, -- Westfall
+    [1437] = 3470.0, -- Wetlands
+    [1438] = 2226.66, -- Teldrassil
+    [1439] = 4920.0, -- Darkshore
+    [1440] = 5760.0, -- Ashenvale
+    [1441] = 4920.0, -- Thousand Needles
+    [1442] = 4920.0, -- Stonetalon Mountains
+    [1443] = 5760.0, -- Desolace
+    [1444] = 5760.0, -- Feralas
+    [1445] = 3470.0, -- Dustwallow Marsh
+    [1446] = 5760.0, -- Tanaris
+    [1447] = 3470.0, -- Azshara
+    [1448] = 5760.0, -- Felwood
+    [1449] = 3840.0, -- Un'Goro Crater
+    [1450] = 1850.0, -- Moonglade
+    [1451] = 5760.0, -- Silithus
+    [1452] = 5760.0, -- Winterspring
+}
