@@ -4,14 +4,23 @@ if GetLocale and GetLocale() == "frFR" then
     PartyArrowLocals = {
         ["OPTIONS_TITLE"] = "PartyArrow",
         ["OPTIONS_SUBTITLE"] = "Copyright (c) 2026 TC Conway. Tous droits réservés.",
-        ["OPTIONS_CREDITS"] = "|cffffd200Auteur:|r TCConway\nAvec inspiration et code original par Jayama\n\n|cffffd200Remerciements:|r\nLa communaute des addons WoW et Blizzard\n\n|cffffd200Localisation:|r\nLira",
+        ["OPTIONS_DETAILS"] =   "|cffffd200Auteur:|r TCConway\n\n" ..
+                                "|cffffd200Contribuiteurs:|r\n" ..
+                                "- Jayama (PlayerArrow AddOn, qui a inspiré)\n" ..
+                                "- Lira (Localisation)\n\n" ..
+                                "|cffffd200Remerciements:|r\nLa communauté des addons WoW",
         ["OPTIONS_SETTINGS_HEADER"] = "Réglages",
         ["OPTIONS_SHOW_ARROWS"] = "Afficher les fleches",
+        ["OPTIONS_VISIBILITY_LABEL"] = "Visibilite du cadre de fleches",
+        ["OPTIONS_VISIBILITY_ALWAYS"] = "Toujours afficher",
+        ["OPTIONS_VISIBILITY_GROUP"] = "Afficher seulement en groupe",
+        ["OPTIONS_VISIBILITY_HIDDEN"] = "Masquer",
         ["OPTIONS_LOCK_FRAME"] = "Verrouiller le cadre des fleches",
         ["OPTIONS_RESET_POSITION"] = "Reinitialiser la position",
         ["HELP_HEADER"] = "commandes:",
         ["HELP_SHOW"] = "/pa show - afficher les fleches",
         ["HELP_HIDE"] = "/pa hide - masquer les fleches",
+        ["HELP_INGROUP"] = "/pa ingroup - afficher les fleches seulement en groupe",
         ["HELP_LOCK"] = "/pa lock - verrouiller le deplacement",
         ["HELP_UNLOCK"] = "/pa unlock - deverrouiller le deplacement",
         ["HELP_RESET"] = "/pa reset - reinitialiser la position",
@@ -19,6 +28,7 @@ if GetLocale and GetLocale() == "frFR" then
         ["RESET_DONE"] = "reinitialisé.",
         ["ARROWS_SHOWN"] = "fleches affichees.",
         ["ARROWS_HIDDEN"] = "fleches masquees.",
+        ["ARROWS_INGROUP"] = "fleches affichees seulement en groupe.",
         ["ARROWS_LOCKED"] = "fleches verrouillees.",
         ["ARROWS_UNLOCKED"] = "fleches deverrouillees.",
         ["STATUS_ON"] = "Marche.",

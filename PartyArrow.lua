@@ -19,12 +19,23 @@ local arrowFrames = {}
 local partyMembers = {}
 local arrowBoxLocked = PartyArrowDB and PartyArrowDB.locked or false
 local paTitle = "|cffffff78PartyArrow|r"
+local ShowArrows
 local L = PartyArrowLocals or {}
 local function Loc(key, fallback)
     return L[key] or fallback or key
 end
-local function IsArrowsVisiblePreference()
-    return PartyArrowDB and PartyArrowDB.visible ~= false
+local VISIBILITY_ALWAYS = "always"
+local VISIBILITY_GROUP = "group"
+local VISIBILITY_HIDDEN = "hidden"
+local function NormalizeVisibilityMode()
+    local mode = PartyArrowDB and PartyArrowDB.visibilityMode
+    if mode == VISIBILITY_ALWAYS or mode == VISIBILITY_GROUP or mode == VISIBILITY_HIDDEN then
+        return mode
+    end
+    if PartyArrowDB and PartyArrowDB.visible == false then
+        return VISIBILITY_HIDDEN
+    end
+    return VISIBILITY_ALWAYS
 end
 
 
@@ -146,6 +157,24 @@ local function SetArrowBoxLocked(locked)
     else
         arrowBox:RegisterForDrag("LeftButton")
     end
+end
+
+local function ResetPlayerArrow()
+    PartyArrowDB.visibilityMode = VISIBILITY_ALWAYS
+    PartyArrowDB.visible = true
+    PartyArrowDB.point = nil
+    PartyArrowDB.relativePoint = nil
+    PartyArrowDB.xOfs = nil
+    PartyArrowDB.yOfs = nil
+    if arrowBox then
+        RestoreArrowBoxPosition()
+        arrowBox:Show()
+    end
+    ShowArrows()
+    if PartyArrow_UpdateVisibilityDropdown then
+        PartyArrow_UpdateVisibilityDropdown()
+    end
+    print(paTitle, Loc("RESET_DONE", "reset."))
 end
 
 local function CreateArrowForMember(index, playerName)
@@ -292,8 +321,13 @@ local function HideArrows()
     f:SetScript("OnUpdate", nil)
 end
 
-local function ShowArrows()
-    if not IsArrowsVisiblePreference() then
+ShowArrows = function()
+    local mode = NormalizeVisibilityMode()
+    if mode == VISIBILITY_HIDDEN then
+        HideArrows()
+        return
+    end
+    if mode == VISIBILITY_GROUP and not IsInGroup() then
         HideArrows()
         return
     end
@@ -339,12 +373,35 @@ f:SetScript("OnEvent", function(self, event)
         if PartyArrowDB.visible == nil then
             PartyArrowDB.visible = true
         end
+        if PartyArrowDB.visibilityMode == nil then
+            PartyArrowDB.visibilityMode = PartyArrowDB.visible and VISIBILITY_ALWAYS or VISIBILITY_HIDDEN
+        end
         PartyArrow_CreateOptionsPanel()
         ShowArrows()
     elseif event == "GROUP_ROSTER_UPDATE" then
         ShowArrows()
     end
 end)
+
+function PartyArrow_GetVisibilityMode()
+    return NormalizeVisibilityMode()
+end
+
+function PartyArrow_SetVisibilityMode(mode)
+    if mode ~= VISIBILITY_ALWAYS and mode ~= VISIBILITY_GROUP and mode ~= VISIBILITY_HIDDEN then
+        mode = VISIBILITY_ALWAYS
+    end
+    PartyArrowDB.visibilityMode = mode
+    PartyArrowDB.visible = mode ~= VISIBILITY_HIDDEN
+    if mode == VISIBILITY_HIDDEN then
+        HideArrows()
+    else
+        ShowArrows()
+    end
+    if PartyArrow_UpdateVisibilityDropdown then
+        PartyArrow_UpdateVisibilityDropdown()
+    end
+end
 
 
 -- Slash commands
@@ -357,6 +414,7 @@ SlashCmdList["PARTYARROW"] = function(msg)
         print(paTitle, Loc("HELP_HEADER", "commands:"))
         print(paTitle, Loc("HELP_SHOW", "/pa show - show the arrow box"))
         print(paTitle, Loc("HELP_HIDE", "/pa hide - hide the arrow box"))
+        print(paTitle, Loc("HELP_INGROUP", "/pa ingroup - show the arrow box only while in a group"))
         print(paTitle, Loc("HELP_LOCK", "/pa lock - lock arrow box movement"))
         print(paTitle, Loc("HELP_UNLOCK", "/pa unlock - unlock arrow box movement"))
         print(paTitle, Loc("HELP_RESET", "/pa reset - reset arrow box position"))
@@ -364,27 +422,22 @@ SlashCmdList["PARTYARROW"] = function(msg)
         return
     end
     if msg and msg:match("^%s*reset%s*$") then
-        PartyArrowDB.point = nil
-        PartyArrowDB.relativePoint = nil
-        PartyArrowDB.xOfs = nil
-        PartyArrowDB.yOfs = nil
-        if arrowBox then
-            RestoreArrowBoxPosition()
-            arrowBox:Show()
-        end
-        print(paTitle, Loc("RESET_DONE", "reset."))
+        ResetPlayerArrow()
         return
     end
     if msg and msg:match("^%s*show%s*$") then
-        PartyArrowDB.visible = true
-        ShowArrows()
+        PartyArrow_SetVisibilityMode(VISIBILITY_ALWAYS)
         print(paTitle, Loc("ARROWS_SHOWN", "arrows shown."))
         return
     end
     if msg and msg:match("^%s*hide%s*$") then
-        PartyArrowDB.visible = false
-        HideArrows()
+        PartyArrow_SetVisibilityMode(VISIBILITY_HIDDEN)
         print(paTitle, Loc("ARROWS_HIDDEN", "arrows hidden."))
+        return
+    end
+    if msg and msg:match("^%s*ingroup%s*$") then
+        PartyArrow_SetVisibilityMode(VISIBILITY_GROUP)
+        print(paTitle, Loc("ARROWS_INGROUP", "arrows will only show while in a group."))
         return
     end
     if msg and msg:match("^%s*lock%s*$") then
