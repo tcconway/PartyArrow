@@ -42,6 +42,6 @@ if GetLocale and GetLocale() == "frFR" then
         ["DEBUG_WORLD_WIDTH"] = "largeurMonde=%.2f (depuis pos carte)",
         ["DEBUG_WORLD_POS_UNAVAILABLE"] = "conversion position monde indisponible.",
         ["DEBUG_WORLD_POS_API_UNAVAILABLE"] = "API position monde indisponible.",
-        ["EMPTY_GROUP_MESSAGE"] = "Veuillez\nrejoindre\nun\ngroupe\ns'il\nvous\nplait",
+        ["EMPTY_GROUP_MESSAGE"] = "Joignez\nun\ngroupe",
     }
 end

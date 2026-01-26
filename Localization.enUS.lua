@@ -1,5 +1,5 @@
 -- Localization.enUS.lua
-
+-- default language (English)
 
 PartyArrowLocals = {
     ["OPTIONS_TITLE"] = "PartyArrow",
@@ -8,7 +8,7 @@ PartyArrowLocals = {
                             "|cffffd200Contribuitors:|r\n" ..
                             "- Jayama (PlayerArrow AddOn, which inspired this)\n" ..
                             "- Lira (Localization)\n\n" ..
-                            "|cffffd200Special Thanks:|r\nThe WoW addon community,
+                            "|cffffd200Special Thanks:|r\nThe WoW addon community",
     ["OPTIONS_SETTINGS_HEADER"] = "Settings",
     ["OPTIONS_SHOW_ARROWS"] = "Show the arrow frame",
     ["OPTIONS_VISIBILITY_LABEL"] = "Arrow Frame visibility",
@@ -42,5 +42,5 @@ PartyArrowLocals = {
     ["DEBUG_WORLD_WIDTH"] = "worldWidth=%.2f (from map pos)",
     ["DEBUG_WORLD_POS_UNAVAILABLE"] = "world pos conversion unavailable.",
     ["DEBUG_WORLD_POS_API_UNAVAILABLE"] = "world pos API not available.",
-    ["EMPTY_GROUP_MESSAGE"] = "Join\na\ngroup\nfirst",
+    ["EMPTY_GROUP_MESSAGE"] = "Join\na\ngroup",
 }
