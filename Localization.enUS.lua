@@ -1,26 +1,18 @@
 -- Localization.enUS.lua
--- default language (English)
+-- Changes: split out group and raid text.
+-- Date: 2026-02-16
 
 PartyArrowLocals = {
     ["OPTIONS_TITLE"] = "PartyArrow",
     ["OPTIONS_SUBTITLE"] = "Copyright (c) 2026 TC Conway. All rights reserved.",
-    ["OPTIONS_DETAILS"] =   "|cffffd200Author:|r TCConway\n\n" ..
-                            "|cffffd200Contribuitors:|r\n" ..
-                            "- Jayama (PlayerArrow AddOn, which inspired this)\n" ..
-                            "- Lira (Localization)\n\n" ..
-                            "|cffffd200Special Thanks:|r\nThe WoW addon community",
+    ["OPTIONS_CREDITS"] = "|cffffd200Author:|r TCConway\nWith inspiration and original code by Jayama\n\n|cffffd200Special Thanks:|r\nThe WoW addon community and Blizzard\n\n|cffffd200Localization:|r\nLira",
     ["OPTIONS_SETTINGS_HEADER"] = "Settings",
     ["OPTIONS_SHOW_ARROWS"] = "Show the arrow frame",
-    ["OPTIONS_VISIBILITY_LABEL"] = "Arrow Frame visibility",
-    ["OPTIONS_VISIBILITY_ALWAYS"] = "Always show",
-    ["OPTIONS_VISIBILITY_GROUP"] = "Show only while in a group",
-    ["OPTIONS_VISIBILITY_HIDDEN"] = "Hide",
     ["OPTIONS_LOCK_FRAME"] = "Lock the arrow frame in place on the screen.",
     ["OPTIONS_RESET_POSITION"] = "Reset PartyArrow",
     ["HELP_HEADER"] = "commands:",
     ["HELP_SHOW"] = "/pa show - show the arrow frame",
     ["HELP_HIDE"] = "/pa hide - hide the arrow frame",
-    ["HELP_INGROUP"] = "/pa ingroup - show the arrow frame only while in a group",
     ["HELP_LOCK"] = "/pa lock - lock arrow frame movement",
     ["HELP_UNLOCK"] = "/pa unlock - unlock arrow frame movement",
     ["HELP_RESET"] = "/pa reset - reset arrow frame position",
@@ -28,19 +20,19 @@ PartyArrowLocals = {
     ["RESET_DONE"] = "reset.",
     ["ARROWS_SHOWN"] = "arrow frame shown.",
     ["ARROWS_HIDDEN"] = "arrow frame hidden.",
-    ["ARROWS_INGROUP"] = "arrow frame shown only while in a group.",
     ["ARROWS_LOCKED"] = "arrow frame locked.",
     ["ARROWS_UNLOCKED"] = "arrow frame unlocked.",
     ["STATUS_ON"] = "On.",
     ["DEBUG_NO_MAPID"] = "no mapID for player.",
     ["DEBUG_NO_PLAYER_POS"] = "no player position on map.",
     ["DEBUG_MAPID_POS"] = "mapID=%s (%s) pos=%.4f,%.4f",
-    ["DEBUG_GROUP_RAID"] = "inGroup=%s inRaid=%s",
+    ["DEBUG_IN_GROUP"] = "Group=%s",
+    ["DEBUG_IN_RAID"] = "Raid=%s",
     ["DEBUG_WORLD_SIZE"] = "mapWorldSize=%.2f x %.2f",
     ["DEBUG_WORLD_SIZE_UNAVAILABLE"] = "mapWorldSize unavailable.",
     ["DEBUG_WORLD_SIZE_API_UNAVAILABLE"] = "mapWorldSize API not available.",
     ["DEBUG_WORLD_WIDTH"] = "worldWidth=%.2f (from map pos)",
     ["DEBUG_WORLD_POS_UNAVAILABLE"] = "world pos conversion unavailable.",
     ["DEBUG_WORLD_POS_API_UNAVAILABLE"] = "world pos API not available.",
-    ["EMPTY_GROUP_MESSAGE"] = "Join\na\ngroup",
+    ["EMPTY_GROUP_MESSAGE"] = "Join\na\ngroup\nfirst",
 }

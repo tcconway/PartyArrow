@@ -3,7 +3,7 @@
 -- Original addon: PlayerArrow
 -- Modifications by: TC Conway
 -- Changes: Updated for WoW Midnight (12.x), interface bump, ton of improvements (map scaling, class arrows, better distance formatting, UI improvements, etc)
--- Date: 2026-01-24
+-- Date: 2026-02-16
 
 
 -- Core state
@@ -19,23 +19,12 @@ local arrowFrames = {}
 local partyMembers = {}
 local arrowBoxLocked = PartyArrowDB and PartyArrowDB.locked or false
 local paTitle = "|cffffff78PartyArrow|r"
-local ShowArrows
 local L = PartyArrowLocals or {}
 local function Loc(key, fallback)
     return L[key] or fallback or key
 end
-local VISIBILITY_ALWAYS = "always"
-local VISIBILITY_GROUP = "group"
-local VISIBILITY_HIDDEN = "hidden"
-local function NormalizeVisibilityMode()
-    local mode = PartyArrowDB and PartyArrowDB.visibilityMode
-    if mode == VISIBILITY_ALWAYS or mode == VISIBILITY_GROUP or mode == VISIBILITY_HIDDEN then
-        return mode
-    end
-    if PartyArrowDB and PartyArrowDB.visible == false then
-        return VISIBILITY_HIDDEN
-    end
-    return VISIBILITY_ALWAYS
+local function IsArrowsVisiblePreference()
+    return PartyArrowDB and PartyArrowDB.visible ~= false
 end
 
 
@@ -44,19 +33,12 @@ local function yardsToMeters(yards)
     return yards * 0.9144
 end
 
-local function humanizeYardsKilometers(yards)
-    local meters = yardsToMeters(yards)
-    local km = math.floor(meters / 1000)
-    local remaining = math.floor(meters % 1000)
-    return km, remaining
-end
-
 local function formatDistanceMeters(distanceYards)
-    local km, meters = humanizeYardsKilometers(distanceYards)
-    if km == 0 then
-        return string.format("%dm", meters)
+    local meters = yardsToMeters(distanceYards)
+    if meters < 1000 then
+        return string.format("%dm", math.floor(meters))
     else
-        return string.format("%dkm %dm", km, meters)
+        return string.format("%.2f KM", meters / 1000)
     end
 end
 
@@ -159,24 +141,6 @@ local function SetArrowBoxLocked(locked)
     end
 end
 
-local function ResetPlayerArrow()
-    PartyArrowDB.visibilityMode = VISIBILITY_ALWAYS
-    PartyArrowDB.visible = true
-    PartyArrowDB.point = nil
-    PartyArrowDB.relativePoint = nil
-    PartyArrowDB.xOfs = nil
-    PartyArrowDB.yOfs = nil
-    if arrowBox then
-        RestoreArrowBoxPosition()
-        arrowBox:Show()
-    end
-    ShowArrows()
-    if PartyArrow_UpdateVisibilityDropdown then
-        PartyArrow_UpdateVisibilityDropdown()
-    end
-    print(paTitle, Loc("RESET_DONE", "reset."))
-end
-
 local function CreateArrowForMember(index, playerName)
     if arrowFrames[index] then return arrowFrames[index] end
     local frame = CreateFrame("Frame", "PartyArrowFrame"..index, arrowBox)
@@ -269,6 +233,9 @@ local function UpdateArrows()
             frame = CreateArrowForMember(i, member.name)
         end
         if not unit or not UnitIsConnected(unit) then
+            frame.statusText:ClearAllPoints()
+            frame.statusText:SetPoint("TOP", frame, "BOTTOM", 0, -5)
+            frame.statusText:SetFontObject("GameFontNormal")
             frame.texture:Hide()
             frame.distanceText:Hide()
             frame.statusText:SetText("OFFLINE")
@@ -276,6 +243,9 @@ local function UpdateArrows()
             frame.statusText:Show()
             frame:Show()
         elseif UnitIsDeadOrGhost(unit) then
+            frame.statusText:ClearAllPoints()
+            frame.statusText:SetPoint("TOP", frame, "BOTTOM", 0, -5)
+            frame.statusText:SetFontObject("GameFontNormal")
             frame.texture:Hide()
             frame.distanceText:Hide()
             frame.statusText:SetText("DEAD")
@@ -289,7 +259,34 @@ local function UpdateArrows()
             frame.texture:SetTexture(GetClassArrowTexture(unit))
             local pos2 = C_Map.GetPlayerMapPosition(mapID, unit)
             if not pos2 then
-                frame:Hide()
+                local unitMapID = C_Map.GetBestMapForUnit(unit)
+                if unitMapID and unitMapID ~= mapID then
+                    local mapInfo = C_Map.GetMapInfo(unitMapID)
+                    local zoneName = (mapInfo and mapInfo.name) or "Unknown Zone"
+                    frame.texture:Hide()
+                    frame.distanceText:Hide()
+                    frame.statusText:ClearAllPoints()
+                    frame.statusText:SetPoint("CENTER", frame, "CENTER", 0, 0)
+                    frame.statusText:SetWidth(frame:GetWidth() - 8)
+                    frame.statusText:SetWordWrap(true)
+                    frame.statusText:SetJustifyH("CENTER")
+                    frame.statusText:SetText(zoneName)
+                    frame.statusText:SetFontObject("GameFontHighlightSmall")
+                    if arrowBox and arrowBox.emptyText then
+                        local font, size, flags = arrowBox.emptyText:GetFont()
+                        if font and size then
+                            frame.statusText:SetFont(font, size, flags)
+                        end
+                        local r, g, b = arrowBox.emptyText:GetTextColor()
+                        frame.statusText:SetTextColor(r, g, b)
+                    else
+                        frame.statusText:SetTextColor(0.7, 0.7, 0.7)
+                    end
+                    frame.statusText:Show()
+                    frame:Show()
+                else
+                    frame:Hide()
+                end
             else
                 local dx = pos2.x - pos1.x
                 local dy = pos2.y - pos1.y
@@ -321,13 +318,8 @@ local function HideArrows()
     f:SetScript("OnUpdate", nil)
 end
 
-ShowArrows = function()
-    local mode = NormalizeVisibilityMode()
-    if mode == VISIBILITY_HIDDEN then
-        HideArrows()
-        return
-    end
-    if mode == VISIBILITY_GROUP and not IsInGroup() then
+local function ShowArrows()
+    if not IsArrowsVisiblePreference() then
         HideArrows()
         return
     end
@@ -373,35 +365,12 @@ f:SetScript("OnEvent", function(self, event)
         if PartyArrowDB.visible == nil then
             PartyArrowDB.visible = true
         end
-        if PartyArrowDB.visibilityMode == nil then
-            PartyArrowDB.visibilityMode = PartyArrowDB.visible and VISIBILITY_ALWAYS or VISIBILITY_HIDDEN
-        end
         PartyArrow_CreateOptionsPanel()
         ShowArrows()
     elseif event == "GROUP_ROSTER_UPDATE" then
         ShowArrows()
     end
 end)
-
-function PartyArrow_GetVisibilityMode()
-    return NormalizeVisibilityMode()
-end
-
-function PartyArrow_SetVisibilityMode(mode)
-    if mode ~= VISIBILITY_ALWAYS and mode ~= VISIBILITY_GROUP and mode ~= VISIBILITY_HIDDEN then
-        mode = VISIBILITY_ALWAYS
-    end
-    PartyArrowDB.visibilityMode = mode
-    PartyArrowDB.visible = mode ~= VISIBILITY_HIDDEN
-    if mode == VISIBILITY_HIDDEN then
-        HideArrows()
-    else
-        ShowArrows()
-    end
-    if PartyArrow_UpdateVisibilityDropdown then
-        PartyArrow_UpdateVisibilityDropdown()
-    end
-end
 
 
 -- Slash commands
@@ -414,7 +383,6 @@ SlashCmdList["PARTYARROW"] = function(msg)
         print(paTitle, Loc("HELP_HEADER", "commands:"))
         print(paTitle, Loc("HELP_SHOW", "/pa show - show the arrow box"))
         print(paTitle, Loc("HELP_HIDE", "/pa hide - hide the arrow box"))
-        print(paTitle, Loc("HELP_INGROUP", "/pa ingroup - show the arrow box only while in a group"))
         print(paTitle, Loc("HELP_LOCK", "/pa lock - lock arrow box movement"))
         print(paTitle, Loc("HELP_UNLOCK", "/pa unlock - unlock arrow box movement"))
         print(paTitle, Loc("HELP_RESET", "/pa reset - reset arrow box position"))
@@ -422,22 +390,27 @@ SlashCmdList["PARTYARROW"] = function(msg)
         return
     end
     if msg and msg:match("^%s*reset%s*$") then
-        ResetPlayerArrow()
+        PartyArrowDB.point = nil
+        PartyArrowDB.relativePoint = nil
+        PartyArrowDB.xOfs = nil
+        PartyArrowDB.yOfs = nil
+        if arrowBox then
+            RestoreArrowBoxPosition()
+            arrowBox:Show()
+        end
+        print(paTitle, Loc("RESET_DONE", "reset."))
         return
     end
     if msg and msg:match("^%s*show%s*$") then
-        PartyArrow_SetVisibilityMode(VISIBILITY_ALWAYS)
+        PartyArrowDB.visible = true
+        ShowArrows()
         print(paTitle, Loc("ARROWS_SHOWN", "arrows shown."))
         return
     end
     if msg and msg:match("^%s*hide%s*$") then
-        PartyArrow_SetVisibilityMode(VISIBILITY_HIDDEN)
+        PartyArrowDB.visible = false
+        HideArrows()
         print(paTitle, Loc("ARROWS_HIDDEN", "arrows hidden."))
-        return
-    end
-    if msg and msg:match("^%s*ingroup%s*$") then
-        PartyArrow_SetVisibilityMode(VISIBILITY_GROUP)
-        print(paTitle, Loc("ARROWS_INGROUP", "arrows will only show while in a group."))
         return
     end
     if msg and msg:match("^%s*lock%s*$") then
@@ -464,8 +437,8 @@ SlashCmdList["PARTYARROW"] = function(msg)
         local mapInfo = C_Map.GetMapInfo(mapID)
         local mapName = mapInfo and mapInfo.name or "unknown"
         print(paTitle, string.format(Loc("DEBUG_MAPID_POS", "mapID=%s (%s) pos=%.4f,%.4f"), mapID, mapName, pos1.x, pos1.y))
-        print(paTitle, string.format(Loc("DEBUG_GROUP_RAID", "inGroup=%s inRaid=%s"),
-            tostring(IsInGroup()), tostring(IsInRaid())))
+        local inRaid = IsInRaid()
+        local inGroup = IsInGroup()
         if C_Map.GetMapWorldSize then
             local width, height = C_Map.GetMapWorldSize(mapID)
             if width and height then
@@ -507,6 +480,43 @@ SlashCmdList["PARTYARROW"] = function(msg)
             end
         else
             print(paTitle, Loc("DEBUG_WORLD_POS_API_UNAVAILABLE", "world pos API not available."))
+        end
+        print(paTitle, string.format(Loc("DEBUG_IN_RAID", "Raid=%s"), tostring(inRaid)))
+        print(paTitle, string.format(Loc("DEBUG_IN_GROUP", "Group=%s"), tostring(inGroup)))
+        if inGroup then
+            local entries = {}
+            local function addUnitDebugEntry(unit)
+                local name, realm = UnitName(unit)
+                if not name then return end
+                if realm and realm ~= "" then
+                    name = name .. "-" .. realm
+                end
+                local zoneName = "unknown"
+                local unitMapID = C_Map.GetBestMapForUnit(unit)
+                if unitMapID then
+                    local unitMapInfo = C_Map.GetMapInfo(unitMapID)
+                    if unitMapInfo and unitMapInfo.name then
+                        zoneName = unitMapInfo.name
+                    end
+                end
+                table.insert(entries, { name = name, zone = zoneName })
+            end
+            if inRaid then
+                for i = 1, GetNumGroupMembers() do
+                    addUnitDebugEntry("raid" .. i)
+                end
+            else
+                addUnitDebugEntry("player")
+                for i = 1, GetNumSubgroupMembers() do
+                    addUnitDebugEntry("party" .. i)
+                end
+            end
+            table.sort(entries, function(a, b)
+                return string.lower(a.name) < string.lower(b.name)
+            end)
+            for _, entry in ipairs(entries) do
+                print(paTitle, "   |cffffff00" .. entry.name .. "|r: " .. entry.zone)
+            end
         end
         return
     end
