@@ -1,5 +1,5 @@
 # PartyArrow
-PartyArrow is a WoW addon for Midnight (12.x) that shows directional arrows to party members with distance and status indicators, class-based arrow textures, and a simple options panel.
+PartyArrow is a WoW addon for Midnight (12.x) and WoW Forever (1.60.x) that shows directional arrows to party members with distance and status indicators, class-based arrow textures, and a simple options panel.
 
 ## Features
 

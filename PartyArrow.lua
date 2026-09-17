@@ -46,21 +46,22 @@ end
 -- Map scaling
 local MAP_SCALES = PartyArrow_MAP_SCALES or {}
 
+-- Returns map width and height in yards (fallback table only has width, so it is used for both)
 local function GetEffectiveMapScale(mapID)
     if C_Map.GetMapWorldSize then
-        local width = C_Map.GetMapWorldSize(mapID)
-        if width then
-            return width
+        local width, height = C_Map.GetMapWorldSize(mapID)
+        if width and height and width > 0 and height > 0 then
+            return width, height
         end
     end
     if MAP_SCALES[mapID] then
-        return MAP_SCALES[mapID]
+        return MAP_SCALES[mapID], MAP_SCALES[mapID]
     end
     local mapInfo = C_Map.GetMapInfo(mapID)
     if mapInfo and mapInfo.parentMapID and MAP_SCALES[mapInfo.parentMapID] then
-        return MAP_SCALES[mapInfo.parentMapID]
+        return MAP_SCALES[mapInfo.parentMapID], MAP_SCALES[mapInfo.parentMapID]
     end
-    return 1000 -- fallback
+    return 1000, 1000 -- fallback
 end
 
 
@@ -288,8 +289,10 @@ local function UpdateArrows()
                     frame:Hide()
                 end
             else
-                local dx = pos2.x - pos1.x
-                local dy = pos2.y - pos1.y
+                -- Convert normalized map offsets to yards so non-square maps don't skew distance or direction
+                local mapWidth, mapHeight = GetEffectiveMapScale(mapID)
+                local dx = (pos2.x - pos1.x) * mapWidth
+                local dy = (pos2.y - pos1.y) * mapHeight
                 local angle = math.atan2(dx, dy)
                 local facing = GetPlayerFacing() or 0
                 local rotation = angle - facing + math.pi
@@ -297,8 +300,7 @@ local function UpdateArrows()
                     frame.texture:SetRotation(rotation)
                     frame:Show()
                 end
-                local mapScale = GetEffectiveMapScale(mapID)
-                local distanceYards = math.sqrt(dx*dx + dy*dy) * mapScale
+                local distanceYards = math.sqrt(dx*dx + dy*dy)
                 frame.distanceText:SetText(formatDistanceMeters(distanceYards))
             end
         end
