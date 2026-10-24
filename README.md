@@ -20,9 +20,13 @@ Supports Retail (Midnight, 12.x), Classic Era (1.15.x), TBC Anniversary (2.5.x) 
 * `/pa reset`: reset the arrow box position
 * `/pa debug`: print map and group info for bug reports
 
+## Reminder
+
+* WoW doesn't share player positions with addons inside instances (dungeons, raids, delves, scenarios and so on), so PartyArrow doesn't work there until Blizzard changes this. The arrows come back when you leave.
+* If a party member is on another continent, their slot shows only the zone they're in, not an arrow.
+
 ## Notes
 
 * Party only, not raids
-* Arrows are unavailable inside dungeons and other instances, where the game doesn't share player positions; they return when you leave
 * A "?" means the game isn't reporting that member's position
 * Bugs and ideas: [GitHub issues](https://github.com/tcconway/PartyArrow/issues)
