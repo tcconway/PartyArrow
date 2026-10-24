@@ -3,7 +3,7 @@
 ## Notes: Shows an arrow pointing to a party-member's location.
 ## Category: Map
 ## Author: tcconway
-## Version: 1.2.0
+## Version: 1.2.1
 ## X-Credits: Localization by Lira.
 ## IconTexture: Interface\AddOns\PartyArrow\images\icon
 ## SavedVariables: PartyArrowDB
