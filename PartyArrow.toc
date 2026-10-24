@@ -1,9 +1,9 @@
-## Interface: 120000, 16001
+## Interface: 120105, 20506, 11509, 16001
 ## Title: PartyArrow
 ## Notes: Shows an arrow pointing to a party-member's location.
 ## Category: Map
 ## Author: tcconway
-## Version: 1.2.1
+## Version: 1.3.0
 ## X-Credits: Localization by Lira.
 ## IconTexture: Interface\AddOns\PartyArrow\images\icon
 ## SavedVariables: PartyArrowDB
@@ -11,5 +11,4 @@
 Localization.enUS.lua
 Localization.frFR.lua
 PartyArrow_Config.lua
-PartyArrows_MapScales.lua
 PartyArrow.lua

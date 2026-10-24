@@ -1,8 +1,8 @@
 -- PartyArrow
 -- Copyright (c) 2026 TC Conway. Licensed under GPLv3 (see LICENSE).
 -- Based on PlayerArrow by Jayama; substantially modified by TC Conway.
--- Changes: Updated for WoW Midnight (12.x) and WoW Forever, map scaling, class arrows,
--- distance formatting, party-only visibility, throttled updates, UI improvements.
+-- Changes: Updated for WoW Midnight (12.x), WoW Forever and Classic, world-position distances,
+-- class arrows, distance formatting, party-only visibility, throttled updates, UI improvements.
 
 
 -- Core state
@@ -42,25 +42,27 @@ local function formatDistanceMeters(distanceYards)
 end
 
 
--- Map scaling
-local MAP_SCALES = PartyArrow_MAP_SCALES or {}
+-- World positions
+-- UnitPosition gives world coordinates in yards on every supported client and works across
+-- zone borders, so no map sizes are needed.
+local function IsSecret(value)
+    return issecretvalue ~= nil and issecretvalue(value) == true
+end
 
--- Returns map width and height in yards (fallback table only has width, so it is used for both)
-local function GetEffectiveMapScale(mapID)
-    if C_Map.GetMapWorldSize then
-        local width, height = C_Map.GetMapWorldSize(mapID)
-        if width and height and width > 0 and height > 0 then
-            return width, height
-        end
+-- Returns north, west, instanceID in yards, or nil where the game doesn't share positions
+-- (instances). UnitPosition's first value grows to the north and its second to the west.
+local function GetWorldPosition(unit)
+    local north, west, _, instanceID = UnitPosition(unit)
+    if not north or not west or IsSecret(north) or IsSecret(west) or IsSecret(instanceID) then
+        return nil
     end
-    if MAP_SCALES[mapID] then
-        return MAP_SCALES[mapID], MAP_SCALES[mapID]
-    end
-    local mapInfo = C_Map.GetMapInfo(mapID)
-    if mapInfo and mapInfo.parentMapID and MAP_SCALES[mapInfo.parentMapID] then
-        return MAP_SCALES[mapInfo.parentMapID], MAP_SCALES[mapInfo.parentMapID]
-    end
-    return 1000, 1000 -- fallback
+    return north, west, instanceID
+end
+
+local function GetUnitZoneName(unit)
+    local mapID = C_Map.GetBestMapForUnit(unit)
+    local mapInfo = mapID and C_Map.GetMapInfo(mapID)
+    return mapInfo and mapInfo.name
 end
 
 
@@ -215,9 +217,8 @@ local function UpdateArrows()
     if not arrowBox or not arrowBox:IsShown() then return end
     -- Fade out instead of hiding when there's no position (instances, zone transitions),
     -- so the IsShown check above doesn't stop updates for good
-    local mapID = C_Map.GetBestMapForUnit("player")
-    local pos1 = mapID and C_Map.GetPlayerMapPosition(mapID, "player")
-    if not pos1 then
+    local playerNorth, playerWest, playerInstance = GetWorldPosition("player")
+    if not playerNorth then
         if not arrowBox.faded then
             arrowBox.faded = true
             arrowBox:SetAlpha(0)
@@ -232,8 +233,11 @@ local function UpdateArrows()
         arrowBox:EnableMouse(not arrowBoxLocked)
     end
     -- Same for every member this tick
-    local mapWidth, mapHeight = GetEffectiveMapScale(mapID)
     local facing = GetPlayerFacing() or 0
+    if IsSecret(facing) then
+        facing = 0
+    end
+    local playerMapID = C_Map.GetBestMapForUnit("player")
     for i, member in ipairs(partyMembers) do
         local unit = member.unit
         local frame = arrowFrames[i]
@@ -269,12 +273,12 @@ local function UpdateArrows()
                 frame.texturePath = texturePath
                 frame.texture:SetTexture(texturePath)
             end
-            local pos2 = C_Map.GetPlayerMapPosition(mapID, unit)
-            if not pos2 then
+            local unitNorth, unitWest, unitInstance = GetWorldPosition(unit)
+            if not unitNorth or unitInstance ~= playerInstance then
+                -- No shared position (another continent or an instance): show their zone if we know it
                 local unitMapID = C_Map.GetBestMapForUnit(unit)
-                if unitMapID and unitMapID ~= mapID then
-                    local mapInfo = C_Map.GetMapInfo(unitMapID)
-                    local zoneName = (mapInfo and mapInfo.name) or Loc("UNKNOWN_ZONE", "Unknown Zone")
+                if unitMapID and unitMapID ~= playerMapID then
+                    local zoneName = GetUnitZoneName(unit) or Loc("UNKNOWN_ZONE", "Unknown Zone")
                     frame.texture:Hide()
                     frame.distanceText:Hide()
                     frame.statusText:ClearAllPoints()
@@ -289,7 +293,7 @@ local function UpdateArrows()
                     frame.statusText:Show()
                     frame:Show()
                 else
-                    -- Same map but no position reported: show "?" instead of leaving a gap
+                    -- Same zone but no position reported: show "?" instead of leaving a gap
                     frame.texture:Hide()
                     frame.distanceText:Hide()
                     frame.statusText:ClearAllPoints()
@@ -301,16 +305,16 @@ local function UpdateArrows()
                     frame:Show()
                 end
             else
-                -- Convert normalized map offsets to yards so non-square maps don't skew distance or direction
-                local dx = (pos2.x - pos1.x) * mapWidth
-                local dy = (pos2.y - pos1.y) * mapHeight
-                local angle = math.atan2(dx, dy)
+                -- Offset to the member in yards, as east and south like map coordinates
+                local east = playerWest - unitWest
+                local south = playerNorth - unitNorth
+                local angle = math.atan2(east, south)
                 local rotation = angle - facing + math.pi
                 if frame.texture and frame.texture.SetRotation then
                     frame.texture:SetRotation(rotation)
                     frame:Show()
                 end
-                local distanceYards = math.sqrt(dx*dx + dy*dy)
+                local distanceYards = math.sqrt(east*east + south*south)
                 frame.distanceText:SetText(formatDistanceMeters(distanceYards))
             end
         end
@@ -403,7 +407,7 @@ SlashCmdList["PARTYARROW"] = function(msg)
         print(paTitle, Loc("HELP_LOCK", "/pa lock - lock arrow box movement"))
         print(paTitle, Loc("HELP_UNLOCK", "/pa unlock - unlock arrow box movement"))
         print(paTitle, Loc("HELP_RESET", "/pa reset - reset arrow box position"))
-        print(paTitle, Loc("HELP_DEBUG", "/pa debug - show map debug info"))
+        print(paTitle, Loc("HELP_DEBUG", "/pa debug - show position and party debug info"))
         return
     end
     if msg and msg:match("^%s*reset%s*$") then
@@ -452,62 +456,16 @@ SlashCmdList["PARTYARROW"] = function(msg)
     end
     if msg and msg:match("^%s*debug%s*$") then
         local mapID = C_Map.GetBestMapForUnit("player")
-        if not mapID then
-            print(paTitle, Loc("DEBUG_NO_MAPID", "no mapID for player."))
-            return
+        local mapInfo = mapID and C_Map.GetMapInfo(mapID)
+        print(paTitle, string.format(Loc("DEBUG_MAP", "map=%s (%s)"), tostring(mapID), mapInfo and mapInfo.name or "unknown"))
+        local playerNorth, playerWest, playerInstance = GetWorldPosition("player")
+        if playerNorth then
+            print(paTitle, string.format(Loc("DEBUG_POSITION", "position=%.1f, %.1f (instance %s)"), playerNorth, playerWest, tostring(playerInstance)))
+        else
+            print(paTitle, Loc("DEBUG_NO_PLAYER_POS", "no player position here (instance?)."))
         end
-        local pos1 = C_Map.GetPlayerMapPosition(mapID, "player")
-        if not pos1 then
-            print(paTitle, Loc("DEBUG_NO_PLAYER_POS", "no player position on map."))
-            return
-        end
-        local mapInfo = C_Map.GetMapInfo(mapID)
-        local mapName = mapInfo and mapInfo.name or "unknown"
-        print(paTitle, string.format(Loc("DEBUG_MAPID_POS", "mapID=%s (%s) pos=%.4f,%.4f"), mapID, mapName, pos1.x, pos1.y))
         local inRaid = IsInRaid()
         local inGroup = IsInGroup()
-        if C_Map.GetMapWorldSize then
-            local width, height = C_Map.GetMapWorldSize(mapID)
-            if width and height then
-                print(paTitle, string.format(Loc("DEBUG_WORLD_SIZE", "mapWorldSize=%.2f x %.2f"), width, height))
-            else
-                print(paTitle, Loc("DEBUG_WORLD_SIZE_UNAVAILABLE", "mapWorldSize unavailable."))
-            end
-        else
-            print(paTitle, Loc("DEBUG_WORLD_SIZE_API_UNAVAILABLE", "mapWorldSize API not available."))
-        end
-        if C_Map.GetWorldPosFromMapPos then
-            local posA = CreateVector2D(0, 0)
-            local posB = CreateVector2D(1, 0)
-            local ax, ay = C_Map.GetWorldPosFromMapPos(mapID, posA)
-            local bx, by = C_Map.GetWorldPosFromMapPos(mapID, posB)
-            local worldA = nil
-            local worldB = nil
-            if type(ax) == "table" then
-                worldA = ax
-            elseif type(ay) == "table" then
-                worldA = ay
-            elseif ax and ay then
-                worldA = { x = ax, y = ay }
-            end
-            if type(bx) == "table" then
-                worldB = bx
-            elseif type(by) == "table" then
-                worldB = by
-            elseif bx and by then
-                worldB = { x = bx, y = by }
-            end
-            if worldA and worldB then
-                local dx = worldB.x - worldA.x
-                local dy = worldB.y - worldA.y
-                local dist = math.sqrt(dx * dx + dy * dy)
-                print(paTitle, string.format(Loc("DEBUG_WORLD_WIDTH", "worldWidth=%.2f (from map pos)"), dist))
-            else
-                print(paTitle, Loc("DEBUG_WORLD_POS_UNAVAILABLE", "world pos conversion unavailable."))
-            end
-        else
-            print(paTitle, Loc("DEBUG_WORLD_POS_API_UNAVAILABLE", "world pos API not available."))
-        end
         print(paTitle, string.format(Loc("DEBUG_IN_RAID", "Raid=%s"), tostring(inRaid)))
         print(paTitle, string.format(Loc("DEBUG_IN_GROUP", "Group=%s"), tostring(inGroup)))
         if inGroup then
@@ -518,12 +476,13 @@ SlashCmdList["PARTYARROW"] = function(msg)
                 if realm and realm ~= "" then
                     name = name .. "-" .. realm
                 end
-                local zoneName = "unknown"
-                local unitMapID = C_Map.GetBestMapForUnit(unit)
-                if unitMapID then
-                    local unitMapInfo = C_Map.GetMapInfo(unitMapID)
-                    if unitMapInfo and unitMapInfo.name then
-                        zoneName = unitMapInfo.name
+                local zoneName = GetUnitZoneName(unit) or "unknown"
+                -- Distance from you, when both positions are shared
+                if playerNorth and not UnitIsUnit(unit, "player") then
+                    local unitNorth, unitWest, unitInstance = GetWorldPosition(unit)
+                    if unitNorth and unitInstance == playerInstance then
+                        local dn, dw = unitNorth - playerNorth, unitWest - playerWest
+                        zoneName = zoneName .. " (" .. formatDistanceMeters(math.sqrt(dn*dn + dw*dw)) .. ")"
                     end
                 end
                 table.insert(entries, { name = name, zone = zoneName })
