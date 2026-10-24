@@ -279,15 +279,12 @@ local function UpdateArrows()
                     frame.distanceText:Hide()
                     frame.statusText:ClearAllPoints()
                     frame.statusText:SetPoint("CENTER", frame, "CENTER", 0, 0)
-                    frame.statusText:SetWidth(frame:GetWidth() - 8)
+                    -- Full slot width so single long words like "Stormwind" fit before wrapping
+                    frame.statusText:SetWidth(frame:GetWidth())
                     frame.statusText:SetWordWrap(true)
                     frame.statusText:SetJustifyH("CENTER")
                     frame.statusText:SetText(zoneName)
                     frame.statusText:SetFontObject("GameFontHighlightSmall")
-                    local font, size, flags = frame.statusText:GetFont()
-                    if font and size then
-                        frame.statusText:SetFont(font, size + 2, flags)
-                    end
                     frame.statusText:SetTextColor(0.7, 0.7, 0.7)
                     frame.statusText:Show()
                     frame:Show()
