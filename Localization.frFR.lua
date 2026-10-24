@@ -19,7 +19,7 @@ if GetLocale and GetLocale() == "frFR" then
         ["HELP_RESET"] = "/pa reset - reinitialiser la position",
         ["HELP_DEBUG"] = "/pa debug - afficher les infos de debug",
         ["RESET_DONE"] = "reinitialisé.",
-        ["ARROWS_SHOWN"] = "fleches affichees.",
+        ["ARROWS_SHOWN"] = "fleches affichees, en groupe.",
         ["ARROWS_HIDDEN"] = "fleches masquees.",
         ["ARROWS_LOCKED"] = "fleches verrouillees.",
         ["ARROWS_UNLOCKED"] = "fleches deverrouillees.",

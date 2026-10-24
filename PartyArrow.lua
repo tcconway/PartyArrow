@@ -425,7 +425,7 @@ SlashCmdList["PARTYARROW"] = function(msg)
         PartyArrowDB.visible = true
         ShowArrows()
         RefreshOptionsPanel()
-        print(paTitle, Loc("ARROWS_SHOWN", "arrows shown."))
+        print(paTitle, Loc("ARROWS_SHOWN", "arrow frame shown, when in a party."))
         return
     end
     if msg and msg:match("^%s*hide%s*$") then
