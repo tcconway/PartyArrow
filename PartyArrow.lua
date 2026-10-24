@@ -1,9 +1,8 @@
 -- PartyArrow
--- Original author: Jayama
--- Original addon: PlayerArrow
--- Modifications by: TC Conway
--- Changes: Updated for WoW Midnight (12.x), interface bump, ton of improvements (map scaling, class arrows, better distance formatting, UI improvements, etc)
--- Date: 2026-02-16
+-- Copyright (c) 2026 TC Conway. Licensed under GPLv3 (see LICENSE).
+-- Based on PlayerArrow by Jayama; substantially modified by TC Conway.
+-- Changes: Updated for WoW Midnight (12.x) and WoW Forever, map scaling, class arrows,
+-- distance formatting, party-only visibility, throttled updates, UI improvements.
 
 
 -- Core state
@@ -125,7 +124,7 @@ local function SetArrowBoxLocked(locked)
     arrowBoxLocked = locked and true or false
     PartyArrowDB.locked = arrowBoxLocked
     if not arrowBox then return end
-    arrowBox:EnableMouse(not arrowBoxLocked)
+    arrowBox:EnableMouse(not arrowBoxLocked and not arrowBox.faded)
     if arrowBoxLocked then
         arrowBox:RegisterForDrag()
     else
@@ -219,10 +218,22 @@ local function UpdateArrows()
     local mapID = C_Map.GetBestMapForUnit("player")
     local pos1 = mapID and C_Map.GetPlayerMapPosition(mapID, "player")
     if not pos1 then
-        arrowBox:SetAlpha(0)
+        if not arrowBox.faded then
+            arrowBox.faded = true
+            arrowBox:SetAlpha(0)
+            -- Don't let an invisible box catch clicks or drags
+            arrowBox:EnableMouse(false)
+        end
         return
     end
-    arrowBox:SetAlpha(1)
+    if arrowBox.faded then
+        arrowBox.faded = false
+        arrowBox:SetAlpha(1)
+        arrowBox:EnableMouse(not arrowBoxLocked)
+    end
+    -- Same for every member this tick
+    local mapWidth, mapHeight = GetEffectiveMapScale(mapID)
+    local facing = GetPlayerFacing() or 0
     for i, member in ipairs(partyMembers) do
         local unit = member.unit
         local frame = arrowFrames[i]
@@ -253,7 +264,11 @@ local function UpdateArrows()
             frame.texture:Show()
             frame.distanceText:Show()
             frame.statusText:Hide()
-            frame.texture:SetTexture(GetClassArrowTexture(unit))
+            local texturePath = GetClassArrowTexture(unit)
+            if frame.texturePath ~= texturePath then
+                frame.texturePath = texturePath
+                frame.texture:SetTexture(texturePath)
+            end
             local pos2 = C_Map.GetPlayerMapPosition(mapID, unit)
             if not pos2 then
                 local unitMapID = C_Map.GetBestMapForUnit(unit)
@@ -277,15 +292,22 @@ local function UpdateArrows()
                     frame.statusText:Show()
                     frame:Show()
                 else
-                    frame:Hide()
+                    -- Same map but no position reported: show "?" instead of leaving a gap
+                    frame.texture:Hide()
+                    frame.distanceText:Hide()
+                    frame.statusText:ClearAllPoints()
+                    frame.statusText:SetPoint("CENTER", frame, "CENTER", 0, 0)
+                    frame.statusText:SetFontObject("GameFontNormalHuge")
+                    frame.statusText:SetText("?")
+                    frame.statusText:SetTextColor(0.7, 0.7, 0.7)
+                    frame.statusText:Show()
+                    frame:Show()
                 end
             else
                 -- Convert normalized map offsets to yards so non-square maps don't skew distance or direction
-                local mapWidth, mapHeight = GetEffectiveMapScale(mapID)
                 local dx = (pos2.x - pos1.x) * mapWidth
                 local dy = (pos2.y - pos1.y) * mapHeight
                 local angle = math.atan2(dx, dy)
-                local facing = GetPlayerFacing() or 0
                 local rotation = angle - facing + math.pi
                 if frame.texture and frame.texture.SetRotation then
                     frame.texture:SetRotation(rotation)

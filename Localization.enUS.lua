@@ -4,8 +4,8 @@
 
 PartyArrowLocals = {
     ["OPTIONS_TITLE"] = "PartyArrow",
-    ["OPTIONS_SUBTITLE"] = "Copyright (c) 2026 TC Conway. All rights reserved.",
-    ["OPTIONS_CREDITS"] = "|cffffd200Author:|r TCConway\nWith inspiration and original code by Jayama\n\n|cffffd200Special Thanks:|r\nThe WoW addon community and Blizzard\n\n|cffffd200Localization:|r\nLira",
+    ["OPTIONS_SUBTITLE"] = "Copyright (c) 2026 TC Conway. Licensed under GPLv3.",
+    ["OPTIONS_CREDITS"] = "|cffffd200Author:|r TCConway\n\n|cffffd200Special Thanks:|r\nThe WoW addon community and Blizzard\n\n|cffffd200Localization:|r\nLira",
     ["OPTIONS_SETTINGS_HEADER"] = "Settings",
     ["OPTIONS_SHOW_ARROWS"] = "Show arrows while in a party",
     ["OPTIONS_LOCK_FRAME"] = "Lock the arrow frame in place on the screen.",

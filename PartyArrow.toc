@@ -2,8 +2,8 @@
 ## Title: PartyArrow
 ## Notes: Shows an arrow pointing to a party-member's location.
 ## Author: tcconway
-## Version: 1.1
-## X-Credits: Original code by Jayama. Modified for WoW Midnight and WoW Forever compatibility and minor changes.
+## Version: 1.2.0
+## X-Credits: Localization by Lira.
 ## IconTexture: Interface\AddOns\PartyArrow\images\icon
 ## SavedVariables: PartyArrowDB
 

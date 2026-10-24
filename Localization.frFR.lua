@@ -5,8 +5,8 @@
 if GetLocale and GetLocale() == "frFR" then
     PartyArrowLocals = {
         ["OPTIONS_TITLE"] = "PartyArrow",
-        ["OPTIONS_SUBTITLE"] = "Copyright (c) 2026 TC Conway. Tous droits réservés.",
-        ["OPTIONS_CREDITS"] = "|cffffd200Auteur:|r TCConway\nAvec inspiration et code original par Jayama\n\n|cffffd200Remerciements:|r\nLa communaute des addons WoW et Blizzard\n\n|cffffd200Localisation:|r\nLira",
+        ["OPTIONS_SUBTITLE"] = "Copyright (c) 2026 TC Conway. Sous licence GPLv3.",
+        ["OPTIONS_CREDITS"] = "|cffffd200Auteur:|r TCConway\n\n|cffffd200Remerciements:|r\nLa communaute des addons WoW et Blizzard\n\n|cffffd200Localisation:|r\nLira",
         ["OPTIONS_SETTINGS_HEADER"] = "Réglages",
         ["OPTIONS_SHOW_ARROWS"] = "Afficher les fleches en groupe",
         ["OPTIONS_LOCK_FRAME"] = "Verrouiller le cadre des fleches",
