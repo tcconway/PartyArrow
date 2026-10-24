@@ -117,15 +117,6 @@ local function CreateArrowBox()
         bg:SetAllPoints()
         bg:SetColorTexture(0, 0, 0, 0.7)
     end
-    arrowBox.emptyText = arrowBox:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
-    arrowBox.emptyText:SetPoint("CENTER", arrowBox, "CENTER", 0, 0)
-    local font, size, flags = arrowBox.emptyText:GetFont()
-    if font and size then
-        arrowBox.emptyText:SetFont(font, size + 2, flags)
-    end
-    arrowBox.emptyText:SetTextColor(0.7, 0.7, 0.7)
-    arrowBox.emptyText:SetText(Loc("EMPTY_GROUP_MESSAGE", "Please join a group first"))
-    arrowBox.emptyText:Hide()
     RestoreArrowBoxPosition() -- Only restore position once, on creation
     arrowBox:Hide()
 end
@@ -197,10 +188,8 @@ local function GatherPartyMembers()
 end
 
 
--- Arrow updates
-local function UpdateArrows()
-    if not arrowBox or not arrowBox:IsShown() then return end
-    -- Dynamically adjust box size and arrow positions
+-- Arrow layout (only changes with the roster)
+local function LayoutArrows()
     local arrowCount = #partyMembers
     local arrowWidth = 64
     local arrowSpacing = 6
@@ -216,17 +205,24 @@ local function UpdateArrows()
         frame:SetPoint("LEFT", arrowBox, "LEFT", (i-1)*(arrowWidth+arrowSpacing), 0)
         frame.nameText:SetText(member.name)
     end
+end
 
+
+-- Arrow updates
+local UPDATE_INTERVAL = 0.05 -- seconds between updates (~20 per second)
+local sinceLastUpdate = 0
+
+local function UpdateArrows()
+    if not arrowBox or not arrowBox:IsShown() then return end
+    -- Fade out instead of hiding when there's no position (instances, zone transitions),
+    -- so the IsShown check above doesn't stop updates for good
     local mapID = C_Map.GetBestMapForUnit("player")
-    if not mapID then
-        arrowBox:Hide()
-        return
-    end
-    local pos1 = C_Map.GetPlayerMapPosition(mapID, "player")
+    local pos1 = mapID and C_Map.GetPlayerMapPosition(mapID, "player")
     if not pos1 then
-        arrowBox:Hide()
+        arrowBox:SetAlpha(0)
         return
     end
+    arrowBox:SetAlpha(1)
     for i, member in ipairs(partyMembers) do
         local unit = member.unit
         local frame = arrowFrames[i]
@@ -239,7 +235,7 @@ local function UpdateArrows()
             frame.statusText:SetFontObject("GameFontNormal")
             frame.texture:Hide()
             frame.distanceText:Hide()
-            frame.statusText:SetText("OFFLINE")
+            frame.statusText:SetText(Loc("STATUS_OFFLINE", PLAYER_OFFLINE or "OFFLINE"))
             frame.statusText:SetTextColor(0.5, 0.5, 0.5)
             frame.statusText:Show()
             frame:Show()
@@ -249,7 +245,7 @@ local function UpdateArrows()
             frame.statusText:SetFontObject("GameFontNormal")
             frame.texture:Hide()
             frame.distanceText:Hide()
-            frame.statusText:SetText("DEAD")
+            frame.statusText:SetText(Loc("STATUS_DEAD", DEAD or "DEAD"))
             frame.statusText:SetTextColor(1, 0, 0)
             frame.statusText:Show()
             frame:Show()
@@ -263,7 +259,7 @@ local function UpdateArrows()
                 local unitMapID = C_Map.GetBestMapForUnit(unit)
                 if unitMapID and unitMapID ~= mapID then
                     local mapInfo = C_Map.GetMapInfo(unitMapID)
-                    local zoneName = (mapInfo and mapInfo.name) or "Unknown Zone"
+                    local zoneName = (mapInfo and mapInfo.name) or Loc("UNKNOWN_ZONE", "Unknown Zone")
                     frame.texture:Hide()
                     frame.distanceText:Hide()
                     frame.statusText:ClearAllPoints()
@@ -273,16 +269,11 @@ local function UpdateArrows()
                     frame.statusText:SetJustifyH("CENTER")
                     frame.statusText:SetText(zoneName)
                     frame.statusText:SetFontObject("GameFontHighlightSmall")
-                    if arrowBox and arrowBox.emptyText then
-                        local font, size, flags = arrowBox.emptyText:GetFont()
-                        if font and size then
-                            frame.statusText:SetFont(font, size, flags)
-                        end
-                        local r, g, b = arrowBox.emptyText:GetTextColor()
-                        frame.statusText:SetTextColor(r, g, b)
-                    else
-                        frame.statusText:SetTextColor(0.7, 0.7, 0.7)
+                    local font, size, flags = frame.statusText:GetFont()
+                    if font and size then
+                        frame.statusText:SetFont(font, size + 2, flags)
                     end
+                    frame.statusText:SetTextColor(0.7, 0.7, 0.7)
                     frame.statusText:Show()
                     frame:Show()
                 else
@@ -307,6 +298,13 @@ local function UpdateArrows()
     end
 end
 
+local function OnUpdate(self, elapsed)
+    sinceLastUpdate = sinceLastUpdate + elapsed
+    if sinceLastUpdate < UPDATE_INTERVAL then return end
+    sinceLastUpdate = 0
+    UpdateArrows()
+end
+
 
 -- Visibility control
 local function HideArrows()
@@ -314,33 +312,27 @@ local function HideArrows()
     for _, frame in ipairs(arrowFrames) do
         frame:Hide()
     end
-    if arrowBox and arrowBox.emptyText then
-        arrowBox.emptyText:Hide()
-    end
     f:SetScript("OnUpdate", nil)
 end
 
+local function IsInParty()
+    return IsInGroup() and not IsInRaid()
+end
+
+-- Exposed so the options panel can grey out party-only controls
+function PartyArrow_IsInParty()
+    return IsInParty()
+end
+
+local function RefreshOptionsPanel()
+    if PartyArrow_RefreshOptionsPanel then
+        PartyArrow_RefreshOptionsPanel()
+    end
+end
+
 local function ShowArrows()
-    if not IsArrowsVisiblePreference() then
-        HideArrows()
-        return
-    end
-    if not arrowBox then
-        CreateArrowBox()
-    end
-    if not IsInGroup() then
-        arrowBox:SetSize(64, 110)
-        arrowBox:Show()
-        if arrowBox.emptyText then
-            arrowBox.emptyText:Show()
-        end
-        for _, frame in ipairs(arrowFrames) do
-            frame:Hide()
-        end
-        f:SetScript("OnUpdate", nil)
-        return
-    end
-    if IsInRaid() then
+    -- Only shown while in a party; solo and raid never show the box
+    if not IsArrowsVisiblePreference() or not IsInParty() then
         HideArrows()
         return
     end
@@ -349,11 +341,14 @@ local function ShowArrows()
         HideArrows()
         return
     end
-    if arrowBox and arrowBox.emptyText then
-        arrowBox.emptyText:Hide()
+    if not arrowBox then
+        CreateArrowBox()
     end
+    LayoutArrows()
     arrowBox:Show()
-    f:SetScript("OnUpdate", UpdateArrows)
+    -- Run the first update on the next frame instead of waiting a full interval
+    sinceLastUpdate = UPDATE_INTERVAL
+    f:SetScript("OnUpdate", OnUpdate)
 end
 
 
@@ -372,6 +367,7 @@ f:SetScript("OnEvent", function(self, event)
     elseif event == "GROUP_ROSTER_UPDATE" then
         ShowArrows()
     end
+    RefreshOptionsPanel()
 end)
 
 
@@ -398,7 +394,7 @@ SlashCmdList["PARTYARROW"] = function(msg)
         PartyArrowDB.yOfs = nil
         if arrowBox then
             RestoreArrowBoxPosition()
-            arrowBox:Show()
+            ShowArrows()
         end
         print(paTitle, Loc("RESET_DONE", "reset."))
         return
@@ -406,23 +402,33 @@ SlashCmdList["PARTYARROW"] = function(msg)
     if msg and msg:match("^%s*show%s*$") then
         PartyArrowDB.visible = true
         ShowArrows()
+        RefreshOptionsPanel()
         print(paTitle, Loc("ARROWS_SHOWN", "arrows shown."))
         return
     end
     if msg and msg:match("^%s*hide%s*$") then
         PartyArrowDB.visible = false
         HideArrows()
+        RefreshOptionsPanel()
         print(paTitle, Loc("ARROWS_HIDDEN", "arrows hidden."))
         return
     end
-    if msg and msg:match("^%s*lock%s*$") then
-        SetArrowBoxLocked(true)
-        print(paTitle, Loc("ARROWS_LOCKED", "arrows locked."))
-        return
-    end
-    if msg and msg:match("^%s*unlock%s*$") then
-        SetArrowBoxLocked(false)
-        print(paTitle, Loc("ARROWS_UNLOCKED", "arrows unlocked."))
+    local isLock = msg:match("^%s*lock%s*$") ~= nil
+    local isUnlock = msg:match("^%s*unlock%s*$") ~= nil
+    if isLock or isUnlock then
+        -- The box only exists in a party, so there's nothing to lock or move when solo
+        if not IsInParty() then
+            print(paTitle, Loc("LOCK_NEEDS_PARTY", "join a party to lock or unlock the arrow frame."))
+            return
+        end
+        local locked = isLock
+        SetArrowBoxLocked(locked)
+        RefreshOptionsPanel()
+        if locked then
+            print(paTitle, Loc("ARROWS_LOCKED", "arrows locked."))
+        else
+            print(paTitle, Loc("ARROWS_UNLOCKED", "arrows unlocked."))
+        end
         return
     end
     if msg and msg:match("^%s*debug%s*$") then

@@ -8,7 +8,7 @@ if GetLocale and GetLocale() == "frFR" then
         ["OPTIONS_SUBTITLE"] = "Copyright (c) 2026 TC Conway. Tous droits réservés.",
         ["OPTIONS_CREDITS"] = "|cffffd200Auteur:|r TCConway\nAvec inspiration et code original par Jayama\n\n|cffffd200Remerciements:|r\nLa communaute des addons WoW et Blizzard\n\n|cffffd200Localisation:|r\nLira",
         ["OPTIONS_SETTINGS_HEADER"] = "Réglages",
-        ["OPTIONS_SHOW_ARROWS"] = "Afficher les fleches",
+        ["OPTIONS_SHOW_ARROWS"] = "Afficher les fleches en groupe",
         ["OPTIONS_LOCK_FRAME"] = "Verrouiller le cadre des fleches",
         ["OPTIONS_RESET_POSITION"] = "Reinitialiser la position",
         ["HELP_HEADER"] = "commandes:",
@@ -23,6 +23,8 @@ if GetLocale and GetLocale() == "frFR" then
         ["ARROWS_HIDDEN"] = "fleches masquees.",
         ["ARROWS_LOCKED"] = "fleches verrouillees.",
         ["ARROWS_UNLOCKED"] = "fleches deverrouillees.",
+        ["LOCK_NEEDS_PARTY"] = "rejoignez un groupe pour verrouiller ou deverrouiller les fleches.",
+        ["UNKNOWN_ZONE"] = "Zone inconnue",
         ["STATUS_ON"] = "Marche.",
         ["DEBUG_NO_MAPID"] = "aucun mapID pour le joueur.",
         ["DEBUG_NO_PLAYER_POS"] = "aucune position du joueur sur la carte.",
@@ -35,6 +37,5 @@ if GetLocale and GetLocale() == "frFR" then
         ["DEBUG_WORLD_WIDTH"] = "largeurMonde=%.2f (depuis pos carte)",
         ["DEBUG_WORLD_POS_UNAVAILABLE"] = "conversion position monde indisponible.",
         ["DEBUG_WORLD_POS_API_UNAVAILABLE"] = "API position monde indisponible.",
-        ["EMPTY_GROUP_MESSAGE"] = "Veuillez\nrejoindre\nun\ngroupe\ns'il\nvous\nplait",
     }
 end

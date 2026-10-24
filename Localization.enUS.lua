@@ -7,7 +7,7 @@ PartyArrowLocals = {
     ["OPTIONS_SUBTITLE"] = "Copyright (c) 2026 TC Conway. All rights reserved.",
     ["OPTIONS_CREDITS"] = "|cffffd200Author:|r TCConway\nWith inspiration and original code by Jayama\n\n|cffffd200Special Thanks:|r\nThe WoW addon community and Blizzard\n\n|cffffd200Localization:|r\nLira",
     ["OPTIONS_SETTINGS_HEADER"] = "Settings",
-    ["OPTIONS_SHOW_ARROWS"] = "Show the arrow frame",
+    ["OPTIONS_SHOW_ARROWS"] = "Show arrows while in a party",
     ["OPTIONS_LOCK_FRAME"] = "Lock the arrow frame in place on the screen.",
     ["OPTIONS_RESET_POSITION"] = "Reset PartyArrow",
     ["HELP_HEADER"] = "commands:",
@@ -22,6 +22,8 @@ PartyArrowLocals = {
     ["ARROWS_HIDDEN"] = "arrow frame hidden.",
     ["ARROWS_LOCKED"] = "arrow frame locked.",
     ["ARROWS_UNLOCKED"] = "arrow frame unlocked.",
+    ["LOCK_NEEDS_PARTY"] = "join a party to lock or unlock the arrow frame.",
+    ["UNKNOWN_ZONE"] = "Unknown Zone",
     ["STATUS_ON"] = "On.",
     ["DEBUG_NO_MAPID"] = "no mapID for player.",
     ["DEBUG_NO_PLAYER_POS"] = "no player position on map.",
@@ -34,5 +36,4 @@ PartyArrowLocals = {
     ["DEBUG_WORLD_WIDTH"] = "worldWidth=%.2f (from map pos)",
     ["DEBUG_WORLD_POS_UNAVAILABLE"] = "world pos conversion unavailable.",
     ["DEBUG_WORLD_POS_API_UNAVAILABLE"] = "world pos API not available.",
-    ["EMPTY_GROUP_MESSAGE"] = "Join\na\ngroup\nfirst",
 }

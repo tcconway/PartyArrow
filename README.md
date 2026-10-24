@@ -21,5 +21,5 @@ In-game options panel
 /pa debug - prints map/debug info
 
 ## Notes
-* Party only (not shown in raids)
+* Party only: the arrow box is hidden when solo or in a raid
 * Uses the WoW C_Map API with automatic map scaling fallback
