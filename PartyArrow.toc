@@ -1,6 +1,7 @@
 ## Interface: 120000, 16001
 ## Title: PartyArrow
 ## Notes: Shows an arrow pointing to a party-member's location.
+## Category: Map
 ## Author: tcconway
 ## Version: 1.2.0
 ## X-Credits: Localization by Lira.
