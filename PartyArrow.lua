@@ -148,6 +148,12 @@ local function CreateArrowForMember(index, playerName)
     frame.texture:SetAllPoints()
     frame.texture:SetTexture("Interface\\AddOns\\PartyArrow\\images\\arrows\\arrow-default")
     frame.texture:SetBlendMode("BLEND")
+    -- "Dead" for a ghost, just above the distance text (which hangs 5px below the frame);
+    -- on the arrow frame so it draws on top of the arrow's tail
+    frame.ghostText = frame.arrow:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+    frame.ghostText:SetPoint("BOTTOM", frame, "BOTTOM", 0, -4)
+    frame.ghostText:SetTextColor(1, 0, 0)
+    frame.ghostText:Hide()
     -- Anchor name and distance text to the frame bounds
     frame.nameText = frame:CreateFontString(nil, "OVERLAY", "GameFontNormal")
     frame.nameText:SetPoint("BOTTOM", frame, "TOP", 0, 5)
@@ -244,6 +250,8 @@ local function UpdateArrows()
         if not frame then
             frame = CreateArrowForMember(i, member.name)
         end
+        -- Only shown below when a ghost's arrow is drawn (the "Dead" label)
+        frame.ghostText:Hide()
         if not unit or not UnitIsConnected(unit) then
             frame.statusText:ClearAllPoints()
             frame.statusText:SetPoint("TOP", frame, "BOTTOM", 0, -5)
@@ -254,7 +262,8 @@ local function UpdateArrows()
             frame.statusText:SetTextColor(0.5, 0.5, 0.5)
             frame.statusText:Show()
             frame:Show()
-        elseif UnitIsDeadOrGhost(unit) then
+        elseif UnitIsDeadOrGhost(unit) and not UnitIsGhost(unit) then
+            -- Lying dead: no arrow. Ghosts fall through and keep a dimmed arrow.
             frame.statusText:ClearAllPoints()
             frame.statusText:SetPoint("TOP", frame, "BOTTOM", 0, -5)
             frame.statusText:SetFontObject("GameFontNormal")
@@ -268,6 +277,15 @@ local function UpdateArrows()
             frame.texture:Show()
             frame.distanceText:Show()
             frame.statusText:Hide()
+            local isGhost = UnitIsGhost(unit)
+            -- Ghosts get a faded grey arrow and dark grey distance
+            frame.texture:SetDesaturated(isGhost)
+            frame.texture:SetAlpha(isGhost and 0.45 or 1)
+            if isGhost then
+                frame.distanceText:SetTextColor(0.4, 0.4, 0.4)
+            else
+                frame.distanceText:SetTextColor(1, 0.82, 0)
+            end
             local texturePath = GetClassArrowTexture(unit)
             if frame.texturePath ~= texturePath then
                 frame.texturePath = texturePath
@@ -312,6 +330,10 @@ local function UpdateArrows()
                 local rotation = angle - facing + math.pi
                 if frame.texture and frame.texture.SetRotation then
                     frame.texture:SetRotation(rotation)
+                    if isGhost then
+                        frame.ghostText:SetText(Loc("STATUS_DEAD", DEAD or "DEAD"))
+                        frame.ghostText:Show()
+                    end
                     frame:Show()
                 end
                 local distanceYards = math.sqrt(east*east + south*south)
