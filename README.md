@@ -8,6 +8,7 @@ Supports Retail (Midnight, 12.x), Classic Era (1.15.x), TBC Anniversary (2.5.x) 
 * Appears automatically when you join a party; hidden when solo or in a raid
 * Directional arrow and distance for each party member, accurate across zone borders
 * Shows a member's zone when they're elsewhere, and Dead/Offline status
+* Keeps tracking members after they release: ghosts get a faded grey arrow and distance, marked "Dead"
 * Per-class arrow textures
 * Draggable arrow box with saved position
 * Options panel to show/hide and lock the arrows
